@@ -104,7 +104,7 @@
   .result-chip.fail { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
 
   /* ── BOTTOM NAV ── */
-  .nav-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
   .nav-center { display: flex; align-items: center; gap: 8px; }
   button { font-family: inherit; cursor: pointer; font-size: 14px; border-radius: var(--radius-sm); padding: 10px 22px; font-weight: 500; transition: all 0.15s; border: 1px solid; }
   .btn-ghost { background: transparent; border-color: var(--border2); color: var(--text2); }
@@ -262,6 +262,7 @@
   <div class="nav-bar">
     <button class="btn-ghost" id="btn-prev" onclick="navigate(-1)" disabled>← Previous</button>
     <div class="nav-center" id="nav-center"></div>
+    <button class="btn-outline" id="btn-submit" onclick="submitAnswer()" style="display:none">Submit</button>
     <button class="btn-primary" id="btn-next" onclick="handleNext()">Next →</button>
   </div>
 </div>
@@ -702,11 +703,16 @@ function renderQ(){
 
   const stats=getAnsweredStats();
   const progressInfo=document.getElementById('progress-info');
+  const submitBtn=document.getElementById('btn-submit');
+  const isMultiUnanswered=isMulti && !answered;
   if(stats.answered>0){
     progressInfo.innerHTML=`Answered <strong>${stats.answered}/${stats.total}</strong> • Current accuracy <strong>${stats.accuracy}%</strong> • Wrong <strong>${stats.answered-stats.correct}</strong>`;
+  } else if(isMultiUnanswered){
+    progressInfo.textContent=`Select ${q.a.length} answers, then tap Submit to check this question.`;
   } else {
     progressInfo.textContent='Select an answer to get feedback and track your progress after each attempt.';
   }
+  submitBtn.style.display=isMultiUnanswered?'inline-flex':'none';
 
   const next=document.getElementById('btn-next');
   const isLast=pos===total-1;
@@ -736,6 +742,13 @@ function selectOpt(i){
       o.onclick=()=>selectOpt(idx);
     });
   } else { userAnswers[current]=[i]; renderQ(); }
+}
+
+function submitAnswer(){
+  const q=shuffled[current];
+  const ua=userAnswers[current]||[];
+  if(ua.length===0){ alert('Please choose at least one answer before submitting.'); return; }
+  renderQ();
 }
 
 function handleNext(){
